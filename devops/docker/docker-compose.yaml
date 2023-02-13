@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  meu-trocado-bd:
+    build:
+      context: .
+    container_name: meu-trocado-bd
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=123456
+      - PGPORT=5432
+    volumes:
+      - /usr/local/pje/PostgreSQL/13/data:/var/lib/postgresql/data
