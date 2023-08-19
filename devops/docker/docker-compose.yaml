@@ -9,6 +9,8 @@ services:
       - '5432:5432'
     environment:
       - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=meu_trocado
       - PGPORT=5432
     volumes:
-      - /usr/local/pje/PostgreSQL/13/data:/var/lib/postgresql/data
+      - ~/banco-de-dados/meu-trocado:/var/lib/postgresql/data
+      - ../../scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
