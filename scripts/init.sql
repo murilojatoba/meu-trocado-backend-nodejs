@@ -26,7 +26,6 @@ create table tb_conta (
   ds_nome varchar(200) not null,
   dt_criacao timestamp not null default now(),
   in_principal boolean not null default false,
-  in_ativo boolean not null default true,
   id_usuario numeric not null,
   id_usuario_ult_alteracao numeric not null,
   dt_ult_alteracao timestamp not null default now(),
@@ -35,7 +34,7 @@ create table tb_conta (
   constraint tb_conta_fk2 foreign key (id_usuario_ult_alteracao) references tb_usuario (id_usuario)
 );
 
-create index if not exists idx_tb_conta on tb_conta using btree (id_usuario, in_ativo, ds_nome);
+create index if not exists idx_tb_conta on tb_conta using btree (id_usuario, ds_nome);
 
 
 create sequence IF NOT EXISTS sq_tb_categoria minvalue 1 increment by 1;
@@ -44,13 +43,12 @@ create table tb_categoria (
   id_categoria numeric not null default nextval('sq_tb_categoria'),
   ds_nome varchar(200) not null,
   dt_inclusao timestamp not null default now(),
-  in_ativo boolean not null default true,
   id_usuario numeric not null,
   constraint tb_categoria_pk primary key (id_categoria),
   constraint tb_categoria_fk foreign key (id_usuario) references tb_usuario (id_usuario)
 );
 
-create index if not exists idx_tb_categoria on tb_categoria using btree (id_usuario, in_ativo, ds_nome);
+create index if not exists idx_tb_categoria on tb_categoria using btree (id_usuario, ds_nome);
 
 insert into tb_categoria (ds_nome, id_usuario) values ('Investimento', 1);
 insert into tb_categoria (ds_nome, id_usuario) values ('Salário', 1);
@@ -95,19 +93,16 @@ create table tb_lancamento (
   nr_valor numeric(15,2) not null,     -- 9.999.999.999.999,99
   dt_inclusao timestamp not null default now(),
   id_conta numeric not null,
-  in_ativo boolean not null default true,
-  -- id_usuario numeric not null,
   dt_ult_alteracao timestamp not null default now(),
   id_usuario_ult_alteracao numeric not null,
   constraint tb_lancamento_pk primary key (id_lancamento),
-  -- constraint tb_lancamento_fk1 foreign key (id_usuario) references tb_usuario(id_usuario),
   constraint tb_lancamento_fk foreign key (id_conta) references tb_conta (id_conta),
   constraint tb_lancamento_fk2 foreign key (id_categoria) references tb_categoria (id_categoria),
   constraint tb_lancamento_fk3 foreign key (id_usuario_ult_alteracao) references tb_usuario (id_usuario),
   constraint tb_lancamento_cc check (cd_tipo in ('E', 'S'))
 );
 
-create index if not exists idx_tb_lancamento on tb_lancamento using btree (id_conta, in_ativo, dt_referencia);
+create index if not exists idx_tb_lancamento on tb_lancamento using btree (id_conta, dt_referencia);
 
 
 create sequence IF NOT EXISTS sq_tb_saldo minvalue 1 increment by 1;
@@ -125,66 +120,100 @@ create table tb_saldo (
 create index if not exists idx_tb_saldo on tb_saldo using btree (id_conta, dt_referencia);
 
 
+
 -- function atualização de saldos
-CREATE OR REPLACE FUNCTION public.fn_atualiza_saldo()
-RETURNS TRIGGER AS $BODY$
+CREATE OR REPLACE FUNCTION public.fn_atualiza_saldo(p_id_conta numeric, p_dt_referencia date)
+RETURNS VOID AS $BODY$
 DECLARE
-  v_id_conta integer := NEW.id_conta;
-  v_dt_referencia date := NEW.dt_referencia;
-	v_dt_referencia_anterior date := (v_dt_referencia - interval '1 month');
-	v_dt_referencia_posterior date := (v_dt_referencia + interval '1 month');
+	v_dt_referencia_anterior date := (p_dt_referencia - interval '1 month');
+	v_dt_referencia_posterior date := (p_dt_referencia + interval '1 month');
+	v_dt_ultimo_mes_ano_referencia date := (date_trunc('year',p_dt_referencia) + interval '11 month');
 	v_saldo_anterior numeric(15,2);
 	v_saldo numeric(15,2);
 BEGIN
-	RAISE INFO 'Atualizando saldo da conta % no referência %', v_id_conta, v_dt_referencia;
+	RAISE INFO 'Atualizando saldo da conta % em %', p_id_conta, p_dt_referencia;
+
+  -- ver se tem lancamentos no mês;
+	-- IF (select 1 from tb_lancamento l where id_conta = p_id_conta and dt_referencia = p_dt_referencia limit 1) is NULL THEN
+  --   RAISE INFO 'Sem lançamento em %.', p_dt_referencia;
+  --   RETURN;
+  -- END IF;
 
 	select nr_saldo into v_saldo_anterior
 	from tb_saldo s
-	where id_conta = v_id_conta
+	where id_conta = p_id_conta
 	and dt_referencia = v_dt_referencia_anterior;
 
 	IF NOT FOUND THEN
-    RAISE INFO 'Sem registro de saldo para a referência %.', v_dt_referencia_anterior;
+    RAISE INFO 'Sem registro de saldo em %.', v_dt_referencia_anterior;
     v_saldo_anterior := 0;
   ELSE
-    RAISE INFO 'Obtido saldo anterior %.', v_saldo_anterior;
+    RAISE INFO 'Saldo mês anterior %.', v_saldo_anterior;
 	END IF;
 
   select v_saldo_anterior + coalesce(sum(
-    case 
-      when cd_tipo = 'E' then nr_valor
-      when cd_tipo = 'S' then nr_valor * -1
-    end
-  ),0) into v_saldo
+      case 
+        when cd_tipo = 'E' then nr_valor
+        when cd_tipo = 'S' then nr_valor * -1
+      end
+    ),0) into v_saldo
   from tb_lancamento l 
-  where id_conta = v_id_conta
-  and dt_referencia = v_dt_referencia
-  and in_ativo = true;
-
-	RAISE INFO 'Novo saldo obtido %', v_saldo;
+  where id_conta = p_id_conta
+  and dt_referencia = p_dt_referencia;
+	RAISE INFO 'Novo saldo calculado %', v_saldo;
 
   -- atualiza o saldo do mês
 	update tb_saldo 
-  set nr_saldo = v_saldo
-  where id_conta = v_id_conta
-  and dt_referencia = v_dt_referencia;
+  set nr_saldo = v_saldo, 
+      nr_saldo_anterior = v_saldo_anterior
+  where id_conta = p_id_conta
+  and dt_referencia = p_dt_referencia;
 
   IF NOT FOUND THEN
     insert into tb_saldo (id_conta, dt_referencia, nr_saldo_anterior, nr_saldo)
-    values (v_id_conta, v_dt_referencia, v_saldo_anterior, v_saldo);
+    values (p_id_conta, p_dt_referencia, v_saldo_anterior, v_saldo);
 	  RAISE INFO 'Saldo inserido!';
   ELSE
 	  RAISE INFO 'Saldo atualizado!';
   END IF;
 
-  RETURN NEW;
   -- incluir chamada recursiva;
+  IF p_dt_referencia < v_dt_ultimo_mes_ano_referencia THEN
+    PERFORM fn_atualiza_saldo(p_id_conta, v_dt_referencia_posterior);
+  END IF;
 
 END;
 $BODY$ LANGUAGE plpgsql;
 
 
+
+-- function pós insert
+CREATE OR REPLACE FUNCTION public.fn_tb_lancamento_insert()
+RETURNS TRIGGER AS $BODY$
+BEGIN
+  PERFORM fn_atualiza_saldo(NEW.id_conta, NEW.dt_referencia);
+  RETURN NEW;
+END;
+$BODY$ LANGUAGE plpgsql;
+
+-- trigger insert
 create trigger tg_tb_lancamento_insert
 after insert on tb_lancamento 
 for each row 
-EXECUTE PROCEDURE fn_atualiza_saldo();
+EXECUTE PROCEDURE fn_tb_lancamento_insert();
+
+
+-- function pós delete
+CREATE OR REPLACE FUNCTION public.fn_tb_lancamento_delete()
+RETURNS TRIGGER AS $BODY$
+BEGIN
+  PERFORM fn_atualiza_saldo(OLD.id_conta, OLD.dt_referencia);
+  RETURN OLD;
+END;
+$BODY$ LANGUAGE plpgsql;
+
+-- trigger delete
+create trigger tg_tb_lancamento_delete
+after delete on tb_lancamento 
+for each row 
+EXECUTE PROCEDURE fn_tb_lancamento_delete();
