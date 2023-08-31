@@ -19,7 +19,8 @@ select ('2023-08-01'::date - interval '1 month')::date
 
 
 
-select fn_atualiza_saldo(1, :dtRef);
+select fn_atualiza_saldo(:idConta, :dtRef)
+;
 
 
 select * 
@@ -66,12 +67,10 @@ select coalesce(sum(
 from tb_lancamento l 
 where id_conta = :idConta
 and dt_referencia = :dtRef
---and cd_tipo = 'E'
-and in_ativo = true
 ;
 
 
-select public.fn_atualiza_saldo(:idConta, :dtRef);
+
 
 
 select (date_trunc('year','2023-08-01'::date) + interval '11 month')
