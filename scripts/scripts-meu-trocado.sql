@@ -30,6 +30,7 @@ select *
 from tb_lancamento l 
 where id_conta = :idConta
 and dt_referencia = :dtRef
+order by dt_referencia, dt_inclusao 
 ;
 
 
