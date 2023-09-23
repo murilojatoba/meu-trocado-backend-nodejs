@@ -2,17 +2,18 @@
 CREATE OR REPLACE FUNCTION public.fn_atualiza_saldo(p_id_conta numeric, p_dt_referencia date)
 RETURNS VOID AS $BODY$
 DECLARE
-	v_dt_referencia_anterior date := (p_dt_referencia - interval '1 month');
-	v_dt_referencia_posterior date := (p_dt_referencia + interval '1 month');
+  v_dt_referencia date := date_trunc('month', p_dt_referencia);
+	v_dt_referencia_anterior date := (v_dt_referencia - interval '1 month');
+	v_dt_referencia_posterior date := (v_dt_referencia + interval '1 month');
 	v_dt_ultimo_mes_ano_referencia date := (date_trunc('year',p_dt_referencia) + interval '11 month');
 	v_saldo_anterior numeric(15,2);
 	v_saldo numeric(15,2);
 BEGIN
-	RAISE INFO 'Atualizando saldo da conta % em %', p_id_conta, p_dt_referencia;
+	RAISE INFO 'Atualizando saldo da conta % em %...', p_id_conta, v_dt_referencia;
 
   -- ver se tem lancamentos no mês;
-	-- IF (select 1 from tb_lancamento l where id_conta = p_id_conta and dt_referencia = p_dt_referencia limit 1) is NULL THEN
-  --   RAISE INFO 'Sem lançamento em %.', p_dt_referencia;
+	-- IF (select 1 from tb_lancamento l where id_conta = p_id_conta and dt_referencia = v_dt_referencia limit 1) is NULL THEN
+  --   RAISE INFO 'Sem lançamento em %.', v_dt_referencia;
   --   RETURN;
   -- END IF;
 
@@ -22,10 +23,10 @@ BEGIN
 	and dt_referencia = v_dt_referencia_anterior;
 
 	IF NOT FOUND THEN
-    RAISE INFO 'Sem registro de saldo em %.', v_dt_referencia_anterior;
+    RAISE INFO 'Sem registro de saldo em %...', v_dt_referencia_anterior;
     v_saldo_anterior := 0;
   ELSE
-    RAISE INFO 'Saldo mês anterior %.', v_saldo_anterior;
+    RAISE INFO 'Saldo mês anterior %...', v_saldo_anterior;
 	END IF;
 
   select v_saldo_anterior + coalesce(sum(
@@ -36,26 +37,27 @@ BEGIN
     ),0) into v_saldo
   from tb_lancamento l 
   where id_conta = p_id_conta
-  and dt_referencia = p_dt_referencia;
-	RAISE INFO 'Novo saldo calculado %', v_saldo;
+  and dt_referencia = v_dt_referencia;
+	RAISE INFO 'Novo saldo calculado %...', v_saldo;
 
   -- atualiza o saldo do mês
 	update tb_saldo 
   set nr_saldo = v_saldo, 
       nr_saldo_anterior = v_saldo_anterior
   where id_conta = p_id_conta
-  and dt_referencia = p_dt_referencia;
+  and dt_referencia = v_dt_referencia;
 
   IF NOT FOUND THEN
     insert into tb_saldo (id_conta, dt_referencia, nr_saldo_anterior, nr_saldo)
-    values (p_id_conta, p_dt_referencia, v_saldo_anterior, v_saldo);
+    values (p_id_conta, v_dt_referencia, v_saldo_anterior, v_saldo);
 	  RAISE INFO 'Saldo inserido!';
   ELSE
 	  RAISE INFO 'Saldo atualizado!';
   END IF;
 
   -- incluir chamada recursiva;
-  IF p_dt_referencia < v_dt_ultimo_mes_ano_referencia THEN
+  RAISE INFO 'Condição de parada % e %.', v_dt_referencia, v_dt_ultimo_mes_ano_referencia;
+  IF v_dt_referencia < v_dt_ultimo_mes_ano_referencia THEN
     PERFORM fn_atualiza_saldo(p_id_conta, v_dt_referencia_posterior);
   END IF;
 
