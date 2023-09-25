@@ -30,7 +30,7 @@ select *
 from tb_lancamento l 
 where id_conta = :idConta
 and dt_referencia = :dtRef
-order by dt_referencia, dt_inclusao 
+order by dt_referencia, dt_lancamento 
 ;
 
 
@@ -49,22 +49,45 @@ where dt_referencia between (:dtRef::date - interval '1 year')::date and :dtRef
 group by c.id_categoria
 ;
 
--- Agosto
-insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
-values ('E', 1, '2023-08-01', (select id_categoria from tb_categoria where ds_nome = 'SalÃ¡rio'), 10000, 'SalÃ¡rio', 2);
-
-insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
-values ('S', 1, '2023-08-01', (select id_categoria from tb_categoria where ds_nome = 'CondomÃ­nio'), 6500, 'Cond.', 2);
-
-insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
-values ('S', 1, '2023-08-01', (select id_categoria from tb_categoria where ds_nome = 'GÃ¡s'), 120, 'GÃ¡s', 2);
 
 -- Setembro
-insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
-values ('E', 1, '2023-09-01', (select id_categoria from tb_categoria where ds_nome = 'SalÃ¡rio'), 10000, 'SalÃ¡rio', 2);
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-09-01', '2023-09-10', (select id_categoria from tb_categoria where ds_nome = 'Condomínio'), 1450.17, 'Condimínio', 2);
 
-insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
-values ('S', 1, '2023-09-01', (select id_categoria from tb_categoria where ds_nome = 'CondomÃ­nio'), 6500, 'Cond.', 2);
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-09-01', '2023-09-10', (select id_categoria from tb_categoria where ds_nome = 'Claro/Cel.'), 202.27, 'Claro', 2);
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-09-01', '2023-09-10', (select id_categoria from tb_categoria where ds_nome = 'Energia'), 124.26, 'Coelba', 2);
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-09-01', '2023-09-10', (select id_categoria from tb_categoria where ds_nome = 'Oi/Claro'), 222.18, 'Oi/Claro', 2);
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-09-01', '2023-09-01', (select id_categoria from tb_categoria where ds_nome = 'Investimentos'), 2000, 'Investimentos', 2);
+
+-- out
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Compras'), 11707, 'Cartão de Crédito', 2);
+
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Condomínio'), 1443.27, 'Condimínio', 2);
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Gás'), 150, 'Bahia Gás', 2);
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Claro/Cel.'), 411.51, 'Claro', 2);
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Tim/Vivo'), 190.96, 'Tim/Vivo', 2);
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Energia'), 124.59, 'Coelba', 2);
+
+insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
+values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Oi/Claro'), 152.07, 'Oi/Claro', 2);
 
 
 drop table tb_lancamento;

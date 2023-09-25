@@ -55,7 +55,7 @@ create table tb_lancamento (
   dt_referencia date not null default to_char(now(),'yyyy-mm-01')::date,
   ds_descricao varchar(200) not null,
   nr_valor numeric(15,2) not null,     -- 9.999.999.999.999,99
-  dt_inclusao timestamp not null default now(),
+  dt_lancamento timestamp not null default now(),
   id_conta numeric not null,
   dt_ult_alteracao timestamp not null default now(),
   id_usuario_ult_alteracao numeric not null,
