@@ -110,8 +110,6 @@ values ('S', 1, '2023-09-01', '2023-09-10', (select id_categoria from tb_categor
 insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
 values ('S', 1, '2023-09-01', '2023-09-10', (select id_categoria from tb_categoria where ds_nome = 'Oi/Claro'), 222.18, 'Oi/Claro', 2);
 
-insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
-values ('S', 1, '2023-09-01', '2023-09-01', (select id_categoria from tb_categoria where ds_nome = 'Investimentos'), 2000, 'Investimentos', 2);
 
 
 -- mês2 - outubro
@@ -143,7 +141,7 @@ insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_c
 values ('S', 1, '2023-10-01', '2023-10-01', (select id_categoria from tb_categoria where ds_nome = 'Doações'), 500, 'Escola Iane', 2);
 
 insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
-values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Compras'), 11628,57, 'Cartão de Crédito', 2);
+values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Compras'), 11628.57, 'Cartão de Crédito', 2);
 
 insert into tb_lancamento (cd_tipo, id_conta, dt_referencia, dt_lancamento, id_categoria, nr_valor, ds_descricao, id_usuario_ult_alteracao)
 values ('S', 1, '2023-10-01', '2023-10-10', (select id_categoria from tb_categoria where ds_nome = 'Condomínio'), 1455.17, 'Condimínio', 2);
