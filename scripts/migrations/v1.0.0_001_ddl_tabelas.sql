@@ -84,3 +84,18 @@ create table tb_saldo (
 create index if not exists idx_tb_saldo on tb_saldo using btree (id_conta, dt_referencia);
 
 
+
+
+/*
+drop table if exists tb_saldo;
+drop table if exists tb_lancamento;
+drop table if exists tb_conta;
+drop table if exists tb_categoria;
+drop table if exists tb_usuario;
+
+drop sequence IF EXISTS sq_tb_usuario;
+drop sequence IF EXISTS sq_tb_conta;
+drop sequence IF EXISTS sq_tb_categoria;
+drop sequence IF EXISTS sq_tb_lancamento;
+drop sequence IF EXISTS sq_tb_saldo;
+*/
