@@ -11,6 +11,7 @@ services:
       - POSTGRES_PASSWORD=123456
       - POSTGRES_DB=meu_trocado
       - PGPORT=5432
+      #- POSTGRES_INITDB_ARGS='--encoding=LATIN1 --locale=pt_BR.LATIN1'
     volumes:
       - ~/banco-de-dados/meu-trocado:/var/lib/postgresql/data
       - ../../scripts/migrations/:/docker-entrypoint-initdb.d/
