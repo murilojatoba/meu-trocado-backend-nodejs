@@ -1,4 +1,4 @@
--- function atualização de saldos
+-- function atualizaÃ§Ã£o de saldos
 CREATE OR REPLACE FUNCTION public.fn_atualiza_saldo(p_id_conta numeric, p_dt_referencia date, p_nr_valor numeric)
 RETURNS VOID AS $BODY$
 DECLARE
@@ -12,14 +12,14 @@ BEGIN
 
   IF p_nr_valor IS NOT NULL THEN
     RAISE INFO '';
-    RAISE INFO 'Inclusão/remoção de %...', p_nr_valor;
+    RAISE INFO 'InclusÃ£o/remoÃ§Ã£o de %...', p_nr_valor;
   END IF;
 
   RAISE INFO 'Atualizando saldo da conta % em %...', p_id_conta, v_dt_referencia;
 
-  -- ver se tem lancamentos no mês;
+  -- ver se tem lancamentos no mÃªs;
 	-- IF (select 1 from tb_lancamento l where id_conta = p_id_conta and dt_referencia = v_dt_referencia limit 1) is NULL THEN
-  --   RAISE INFO 'Sem lançamento em %.', v_dt_referencia;
+  --   RAISE INFO 'Sem lanÃ§amento em %.', v_dt_referencia;
   --   RETURN;
   -- END IF;
 
@@ -32,7 +32,7 @@ BEGIN
     RAISE INFO 'Sem registro de saldo em %...', v_dt_referencia_anterior;
     v_saldo_anterior := 0;
   ELSE
-    RAISE INFO 'Saldo mês anterior %...', v_saldo_anterior;
+    RAISE INFO 'Saldo mÃªs anterior %...', v_saldo_anterior;
 	END IF;
 
   select v_saldo_anterior + coalesce(
@@ -48,7 +48,7 @@ BEGIN
   and dt_referencia = v_dt_referencia;
 	RAISE INFO 'Novo saldo calculado %...', v_saldo;
 
-  -- atualiza o saldo do mês
+  -- atualiza o saldo do mÃªs
 	update tb_saldo 
   set nr_saldo = v_saldo, 
       nr_saldo_anterior = v_saldo_anterior
@@ -64,7 +64,7 @@ BEGIN
   END IF;
 
   -- incluir chamada recursiva;
-  RAISE INFO 'Condição de parada % e %.', v_dt_referencia, v_dt_ultimo_mes_ano_referencia;
+  RAISE INFO 'CondiÃ§Ã£o de parada % e %.', v_dt_referencia, v_dt_ultimo_mes_ano_referencia;
   IF v_dt_referencia < v_dt_ultimo_mes_ano_referencia THEN
     PERFORM fn_atualiza_saldo(p_id_conta, v_dt_referencia_posterior, null);
   END IF;
@@ -74,7 +74,7 @@ $BODY$ LANGUAGE plpgsql;
 
 
 
--- function pós insert
+-- function pÃ³s insert
 CREATE OR REPLACE FUNCTION public.fn_tb_lancamento_insert()
 RETURNS TRIGGER AS $BODY$
 BEGIN
@@ -90,7 +90,7 @@ for each row
 EXECUTE PROCEDURE fn_tb_lancamento_insert();
 
 
--- function pós delete
+-- function pÃ³s delete
 CREATE OR REPLACE FUNCTION public.fn_tb_lancamento_delete()
 RETURNS TRIGGER AS $BODY$
 BEGIN
@@ -104,3 +104,24 @@ create trigger tg_tb_lancamento_delete
 after delete on tb_lancamento 
 for each row 
 EXECUTE PROCEDURE fn_tb_lancamento_delete();
+
+
+-- function pÃ³s update
+CREATE OR REPLACE FUNCTION public.fn_tb_lancamento_update()
+RETURNS TRIGGER AS $BODY$
+BEGIN
+  IF OLD.dt_referencia = NEW.dt_referencia THEN
+    PERFORM fn_atualiza_saldo(NEW.id_conta, NEW.dt_referencia, NEW.nr_valor);
+  ELSE
+    PERFORM fn_atualiza_saldo(OLD.id_conta, OLD.dt_referencia, OLD.nr_valor);
+    PERFORM fn_atualiza_saldo(NEW.id_conta, NEW.dt_referencia, NEW.nr_valor);
+  END IF;
+  RETURN NEW;
+END;
+$BODY$ LANGUAGE plpgsql;
+
+-- trigger delete
+create trigger tg_tb_lancamento_update
+after update on tb_lancamento 
+for each row 
+EXECUTE PROCEDURE fn_tb_lancamento_update();
